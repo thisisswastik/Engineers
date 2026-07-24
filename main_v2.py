@@ -30,6 +30,8 @@ import agents.documentation as doc
 import agents.database as db
 import agents.devops as devops
 
+from observabillity import setup_observability
+
 load_dotenv()
 
 # maximum number of automated self correction feedback
@@ -177,6 +179,9 @@ async def build_pipeline():
 # 5. Execution Routine with Human Interruption Handling
 # -------------------------------------------------------------------
 async def run_pipeline():
+    # Initialize Arize Phoenix Observability dashboard & auto-instrumentation
+    setup_observability()
+
     pipeline_graph = await build_pipeline()
     
     initial_state = {

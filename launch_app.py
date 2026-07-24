@@ -10,70 +10,65 @@ PROJECT_ROOT = os.path.abspath("./test_project/gourmetgo-platform")
 def log(msg):
     print(f"\n[App Launcher] {msg}")
 
-def check_project_exists():
+def discover_web_app():
+    """Dynamically searches test_project/gourmetgo-platform for frontend/web apps."""
     if not os.path.exists(PROJECT_ROOT):
-        log(f"Error: Project root '{PROJECT_ROOT}' not found! Run main_v2.py first.")
-        sys.exit(1)
+        return None, None
 
-def run_service_npm_dev(service_dir, port):
-    path = os.path.join(PROJECT_ROOT, service_dir)
-    if not os.path.exists(path):
-        log(f"Directory {path} not found. Skipping...")
-        return None
-    
-    log(f"Installing dependencies in {service_dir}...")
-    subprocess.run("npm install", shell=True, cwd=path)
+    search_dirs = [
+        os.path.join(PROJECT_ROOT, "apps"),
+        os.path.join(PROJECT_ROOT, "frontend"),
+        PROJECT_ROOT
+    ]
 
-    log(f"Starting {service_dir} on port {port}...")
-    process = subprocess.Popen("npm run start:dev", shell=True, cwd=path)
-    return process
+    for parent in search_dirs:
+        if os.path.exists(parent):
+            for entry in os.listdir(parent):
+                full_path = os.path.join(parent, entry)
+                if os.path.isdir(full_path):
+                    # Check for package.json or index.html
+                    if os.path.exists(os.path.join(full_path, "package.json")) or os.path.exists(os.path.join(full_path, "index.html")):
+                        return entry, full_path
+
+    return None, None
 
 def main():
     log("="*60)
     log("  GOURMETGO PLATFORM - AUTOMATED APP LAUNCHER  ")
     log("="*60)
 
-    check_project_exists()
+    app_name, app_path = discover_web_app()
 
-    frontend_path = os.path.join(PROJECT_ROOT, "frontend", "customer-web-app")
-    auth_service_path = os.path.join(PROJECT_ROOT, "services", "auth-service")
+    if not app_path:
+        log("⚠️ NOTICE: Generated web application source files not found yet!")
+        log("Please run 'uv run main_v2.py' and press 'y' at the Human-in-the-Loop prompt")
+        log("to allow the Coder agent to generate the project files.\n")
+        sys.exit(0)
 
-    processes = []
+    log(f"Found Web Application: '{app_name}' at {app_path}")
+    log("Installing dependencies...")
+    subprocess.run("npm install", shell=True, cwd=app_path)
+
+    log("Starting web app server on http://localhost:5173...")
+    process = subprocess.Popen("npm run dev", shell=True, cwd=app_path)
+
+    log("Waiting 3 seconds for server startup...")
+    time.sleep(3)
+
+    log("Opening Customer Web App in Browser...")
+    webbrowser.open("http://localhost:5173")
+
+    log("\n" + "="*60)
+    log("App running successfully on http://localhost:5173!")
+    log("Press Ctrl+C to stop the server.")
+    log("="*60)
 
     try:
-        # 1. Start Backend Auth Service (if available)
-        if os.path.exists(auth_service_path):
-            log("Configuring Backend Auth Service...")
-            p_backend = run_service_npm_dev("services/auth-service", 3000)
-            if p_backend: 
-                processes.append(p_backend)
-
-        # 2. Start Customer Web App Frontend (if available)
-        if os.path.exists(frontend_path):
-            log("Configuring Frontend Customer Web App...")
-            p_frontend = run_service_npm_dev("frontend/customer-web-app", 5173)
-            if p_frontend: 
-                processes.append(p_frontend)
-
-        log("Waiting 5 seconds for servers to initialize...")
-        time.sleep(5)
-
-        # 3. Open Browser
-        log("Opening Customer Web App in Browser...")
-        webbrowser.open("http://localhost:5173")
-
-        log("\n" + "="*60)
-        log("App running successfully! Press Ctrl+C to stop all servers.")
-        log("="*60)
-
-        # Keep alive until user interrupts
         while True:
             time.sleep(1)
-
     except KeyboardInterrupt:
-        log("\nShutting down all running servers...")
-        for p in processes:
-            p.terminate()
+        log("\nShutting down web app server...")
+        process.terminate()
         log("Shutdown complete.")
 
 if __name__ == "__main__":
