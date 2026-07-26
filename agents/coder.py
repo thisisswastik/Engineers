@@ -1,3 +1,6 @@
+# agents/coder.py
+import os
+import json
 from typing import TypedDict, List
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
@@ -10,33 +13,52 @@ class CoderState(TypedDict):
     frontend_design: str
     coder_logs: List[str]
 
-async def coder_node(state: CoderState, llm, tools):
-    # initializing the ReAct agent with access to the LLM and filesystem/terminal tools
-    agent =  create_react_agent(llm,tools)
+async def frontend_coder_node(state: CoderState, pro_llm, tools):
+    print("\n[Frontend Coder Agent (Gemini 2.5 Pro)] Initializing Production React UI Generation...")
+    agent = create_react_agent(pro_llm, tools)
 
-    # forumulating the instruction propmpt 
     prompt = f"""
-You are a Senior Software Developer Agent.
-Your task is to implement the code files according to the architecture, database design, and backend/frontend design plans.
-SYSTEM ARCHITECTURE PLAN:
-{state['architecture']}
-DATABASE DESIGN:
-{state.get('database_design', '')}
-BACKEND DESIGN:
-{state['backend_design']}
-FRONTEND DESIGN:
-{state['frontend_design']}
+You are a Senior Frontend Engineer Agent.
+Your task is to build a complete, interactive, production-grade Frontend Web Application in React + TypeScript + Vite.
+
+FRONTEND ARCHITECTURE SPECIFICATION:
+{json.dumps(state.get('frontend_design', {}), indent=2)}
+
 INSTRUCTIONS:
-1. Use your filesystem tools (`write_file`, `create_directory`) to create the project files.
-2. Put all files inside your workspace root.
-3. Write clean, complete code files (do not use placeholders like // TODO: implement later).
-4. Run `pytest` or compiler checks via the terminal tools to verify the code works.
-When you are completely finished writing and verifying the files, output a summary of files created and stop.
+1. Use your terminal and filesystem tools (`write_file`, `create_directory`, `exec`).
+2. Scaffold a React TypeScript app or update `test_project/gourmetgo-monorepo/frontend/customer-app`.
+3. Create production components in `src/App.tsx` and `src/components/` with complete state hooks, event handlers, and styling.
+4. DO NOT use placeholders like // TODO: implement later. Write full working logic.
+When you are completely finished, output a summary of frontend components created.
 """
-    # 3. Invoke the ReAct agent. It will run in a loop calling tools automatically.
-    print("\n[Coder Node] Starting file generation...")
     result = await agent.ainvoke({"messages": [HumanMessage(content=prompt)]})
-    
-    # Return the final completion messages/logs
     final_response = result["messages"][-1].content
-    return {"coder_logs": [final_response]}
+    return {"coder_logs": [f"Frontend Coder: {final_response}"]}
+
+async def backend_coder_node(state: CoderState, pro_llm, tools):
+    print("\n[Backend Coder Agent (Gemini 2.5 Pro)] Initializing Node.js REST API Server Generation...")
+    agent = create_react_agent(pro_llm, tools)
+
+    prompt = f"""
+You are a Senior Backend & API Engineer Agent.
+Your task is to implement the backend REST API microservices according to the backend design spec.
+
+BACKEND DESIGN SPECIFICATION:
+{json.dumps(state.get('backend_design', {}), indent=2)}
+
+DATABASE SPECIFICATION:
+{json.dumps(state.get('database_design', {}), indent=2)}
+
+INSTRUCTIONS:
+1. Use your tools (`write_file`, `create_directory`) to create backend controllers, models, and routes in `test_project/gourmetgo-monorepo/services/`.
+2. Write production server code with input validation, route handlers, and database connections.
+3. DO NOT use placeholders. Write full working logic.
+When finished, output a summary of backend files created.
+"""
+    result = await agent.ainvoke({"messages": [HumanMessage(content=prompt)]})
+    final_response = result["messages"][-1].content
+    return {"coder_logs": [f"Backend Coder: {final_response}"]}
+
+# Alias for backward compatibility
+async def coder_node(state: CoderState, pro_llm, tools):
+    return await frontend_coder_node(state, pro_llm, tools)

@@ -35,16 +35,29 @@ async def get_combined_llm_with_tools():
     tools = await client.get_tools()
     print(f"[MCP Loader] Successfully loaded {len(tools)} tools!")
 
-    llm = ChatGoogleGenerativeAI(
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    # Fast Model: Gemini 2.5 Flash for planning, specs, & auditing
+    flash_llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
-        google_api_key=os.getenv("GEMINI_API_KEY")
+        google_api_key=api_key,
+        temperature=0.2
     )
 
-    llm_with_tools = llm.bind_tools(tools)
-    return llm_with_tools, tools
+    # Reasoning Model: Gemini 2.5 Pro for deep code generation
+    pro_llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-pro",
+        google_api_key=api_key,
+        temperature=0.1
+    )
+
+    flash_with_tools = flash_llm.bind_tools(tools)
+    pro_with_tools = pro_llm.bind_tools(tools)
+
+    return pro_with_tools, flash_with_tools, tools
 
 async def main():
-    llm_with_tools, tools = await get_combined_llm_with_tools()
+    pro_llm, flash_llm, tools = await get_combined_llm_with_tools()
 
 if __name__ == "__main__":
     asyncio.run(main())

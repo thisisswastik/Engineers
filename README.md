@@ -1,6 +1,6 @@
 # 🚀 Engineers — Autonomous AI Software Engineering Organization
 
-> An enterprise-grade, multi-agent AI software development organization built with **LangGraph**, **Google Gemini 2.5 Flash**, **Model Context Protocol (MCP)**, **OpenTelemetry Observability**, and **Human-in-the-Loop Governance**.
+> An enterprise-grade, multi-agent AI software development organization built with **LangGraph**, **Gemini 2.5 Pro & Flash Multi-Model Intelligence**, **Model Context Protocol (MCP)**, **OpenTelemetry Observability**, and **Human-in-the-Loop Governance**.
 
 ---
 
@@ -9,9 +9,10 @@
 **Engineers** converts high-level natural language prompt requests (e.g., *"Build me a food delivery application"*) into complete, production-ready software platforms. It orchestrates an entire software engineering organization consisting of **11 specialized AI Agents** working in parallel and sequential phases.
 
 The system features:
+- **Gemini Multi-Model Tier Specialization**: Fast `gemini-2.5-flash` for high-throughput planning, PRDs, & auditing + `gemini-2.5-pro` for deep Coder agent reasoning and code generation.
 - **Parallel Fan-Out & Fan-In Architecture**: Concurrent execution of backend, database, and frontend engineering design.
-- **Human-in-the-Loop (HITL) Checkpointing**: Pauses execution post-design to allow human leadership approval before code execution.
-- **MCP Tool Integration**: Equips the Coder agent with direct file system, shell terminal, and database execution capabilities.
+- **Human-in-the-Loop (HITL) Checkpointing**: Pauses execution post-design with `AsyncSqliteSaver` persistent checkpointing before code execution.
+- **MCP Tool Integration**: Equips Coder agents with direct file system, shell terminal, and database execution capabilities.
 - **Automated Self-Correction Loop**: Code Reviewer evaluates code quality and routes back to the Coder for automated revisions if critical defects are detected.
 - **Real-Time Observability Dashboard**: Tracks execution traces via OpenTelemetry / OpenInference standards hosted live on `http://localhost:6006`.
 
@@ -152,22 +153,28 @@ GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### 3. Run the Production Agent Organization
-Launch the complete parallel agent workflow with HITL approval and self-correction:
+Launch the complete parallel agent workflow with HITL approval, self-correction, and persistent SQLite checkpointing:
 ```bash
 uv run main_v2.py
 ```
-> 💡 **Human-in-the-Loop Interaction**: The pipeline will pause after generating product requirements, system architecture, database design, backend/frontend designs, and QA specs. Type `y` when prompted to approve and trigger the Coder agent.
+> 💡 **Human-in-the-Loop Interaction**: The pipeline will pause after generating product requirements, system architecture, database design, backend/frontend designs, and QA specs. State is saved to `logs/checkpoints.sqlite` so you can review specs, exit, or resume anytime! Press `y` when prompted to approve code generation.
 
 ---
 
 ## 🛠️ Utility Scripts
 
-### 📊 Launch Observability Dashboard
-View live LLM call traces, tool runs, and execution logs:
+### 📊 Launch Token & Cost Analytics Observability Dashboard
+View real-time token counts, estimated Gemini API costs, OTEL trace streams, and agent metrics:
 ```bash
 uv run launch_dashboard.py
 ```
 *Opens automatically at `http://localhost:6006`*
+
+### 🐙 Auto-Publish Code to GitHub
+Initialize local Git repository, commit generated files, and create/push to GitHub automatically:
+```bash
+uv run scripts/devops_github.py
+```
 
 ### 🌐 Launch Generated Web Application
 Automatically installs dependencies and launches the dev server for generated frontend apps:
