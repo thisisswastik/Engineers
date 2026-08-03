@@ -16,13 +16,15 @@ class ReviewerState(TypedDict):
     frontend_design: dict
     review_feedback: dict
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2,
+    )
 
 def reviewer_node(state: ReviewerState):
+    llm = _get_llm()
     prompt = f"""
 You are a Principal Tech Lead and Code/Architecture Reviewer.
 
@@ -73,8 +75,9 @@ IMPORTANT:
 
     return {"review_feedback": review_feedback}
 
-graph = StateGraph(ReviewerState)
-graph.add_node("reviewer_agent", reviewer_node)
-graph.set_entry_point("reviewer_agent")
-graph.add_edge("reviewer_agent", END)
-reviewer_graph = graph.compile()
+if __name__ == "__main__":
+    graph = StateGraph(ReviewerState)
+    graph.add_node("reviewer_agent", reviewer_node)
+    graph.set_entry_point("reviewer_agent")
+    graph.add_edge("reviewer_agent", END)
+    reviewer_graph = graph.compile()

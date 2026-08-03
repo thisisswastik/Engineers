@@ -13,13 +13,15 @@ class SecurityState(TypedDict):
     architecture: dict
     security_report: dict
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2,
+    )
 
 def security_node(state: SecurityState):
+    llm = _get_llm()
     prompt = f"""
 You are a Lead Application Security Engineer.
 
@@ -73,8 +75,9 @@ IMPORTANT:
 
     return {"security_report": security_report}
 
-graph = StateGraph(SecurityState)
-graph.add_node("security_engineer", security_node)
-graph.set_entry_point("security_engineer")
-graph.add_edge("security_engineer", END)
-security_graph = graph.compile()
+if __name__ == "__main__":
+    graph = StateGraph(SecurityState)
+    graph.add_node("security_engineer", security_node)
+    graph.set_entry_point("security_engineer")
+    graph.add_edge("security_engineer", END)
+    security_graph = graph.compile()

@@ -9,11 +9,15 @@ wheels/
 # Virtual environments
 .venv
 
-# environment variable 
+# Environment variables — never commit real secrets
 .env
 
-# Project specific ignores
-logs/
-test_project/
+# Runtime logs and database checkpoints (but track the directory via .gitkeep)
+logs/*
+!logs/.gitkeep
 *.sqlite
 *.log
+
+# Generated application code from Coder agent (but track directory via .gitkeep)
+test_project/*
+!test_project/.gitkeep

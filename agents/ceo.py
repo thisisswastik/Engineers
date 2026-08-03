@@ -21,17 +21,19 @@ class CEOState(TypedDict):
 # -----------------------------
 # LLM
 # -----------------------------
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.3,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.3,
+    )
 
 
 # -----------------------------
 # CEO Node
 # -----------------------------
 def ceo_node(state: CEOState):
+    llm = _get_llm()
 
     prompt = f"""
 You are the CEO of an elite software company.
@@ -103,24 +105,16 @@ DO NOT wrap in ```json.
     }
 
 
-# -----------------------------
-# Graph
-# -----------------------------
-graph = StateGraph(CEOState)
-
-graph.add_node("CEO", ceo_node)
-
-graph.set_entry_point("CEO")
-
-graph.add_edge("CEO", END)
-
-ceo_graph = graph.compile()
-
 
 # -----------------------------
-# Main
+# Graph (only built when run directly as script)
 # -----------------------------
 if __name__ == "__main__":
+    graph = StateGraph(CEOState)
+    graph.add_node("CEO", ceo_node)
+    graph.set_entry_point("CEO")
+    graph.add_edge("CEO", END)
+    ceo_graph = graph.compile()
 
     state = {
         "user_request": """
@@ -142,10 +136,8 @@ The application should:
     result = ceo_graph.invoke(state)
 
     print("\n========== CEO PLAN ==========\n")
-
     print(json.dumps(result["business_plan"], indent=4))
 
     print("\n========== AGENTS ==========\n")
-
     for agent in result["agents_required"]:
-        print("-", agent)
+        print("-", agent)

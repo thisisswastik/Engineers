@@ -19,15 +19,17 @@ class PMstate(TypedDict):
     product_requirements: dict
     
 # initializing model 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2
+    )
 
 # Product Manager Node
 
 def pm_node(state: PMstate):
+    llm = _get_llm()
     prompt = f"""
     You are a Product Manager.
     
@@ -72,19 +74,21 @@ def pm_node(state: PMstate):
         raise Exception(f"PM did not return valid JSON:\n\n{text}")
 
 # Graph 
-graph = StateGraph(PMstate)
-
-graph.add_node("product_manager", pm_node)
-
-graph.set_entry_point("product_manager")
-
-graph.add_edge("product_manager", END)
-
-pm_graph = graph.compile()
+if __name__ == "__main__":
+    graph = StateGraph(PMstate)
+    graph.add_node("product_manager", pm_node)
+    graph.set_entry_point("product_manager")
+    graph.add_edge("product_manager", END)
+    pm_graph = graph.compile()
 
 
 # main
 if __name__ == "__main__":
+    graph = StateGraph(PMstate)
+    graph.add_node("product_manager", pm_node)
+    graph.set_entry_point("product_manager")
+    graph.add_edge("product_manager", END)
+    pm_graph = graph.compile()
 
     state = {
         "user_request": """
@@ -97,7 +101,6 @@ The application should:
 - Recommend jobs
 - Generate cover letters
 """,
-
         "business_plan": {
             "project_name": "AI Resume Analyzer",
             "summary": "AI-powered resume analysis platform",
@@ -115,18 +118,12 @@ The application should:
             "priority": "High",
             "estimated_complexity": "High"
         },
-
         "product_requirements": {}
     }
 
     result = pm_graph.invoke(state)
 
     print("\n========== PRODUCT REQUIREMENTS ==========\n")
-
     print(json.dumps(result["product_requirements"], indent=4))
-
-
-
-    
 
 

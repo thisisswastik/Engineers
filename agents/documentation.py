@@ -14,13 +14,15 @@ class DocState(TypedDict):
     architecture: dict
     documentation_docs: dict
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2,
+    )
 
 def doc_node(state: DocState):
+    llm = _get_llm()
     prompt = f"""
 You are a Lead Documentation Specialist.
 
@@ -65,8 +67,9 @@ IMPORTANT:
 
     return {"documentation_docs": documentation_docs}
 
-graph = StateGraph(DocState)
-graph.add_node("documentation_agent", doc_node)
-graph.set_entry_point("documentation_agent")
-graph.add_edge("documentation_agent", END)
-documentation_graph = graph.compile()
+if __name__ == "__main__":
+    graph = StateGraph(DocState)
+    graph.add_node("documentation_agent", doc_node)
+    graph.set_entry_point("documentation_agent")
+    graph.add_edge("documentation_agent", END)
+    documentation_graph = graph.compile()

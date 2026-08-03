@@ -1,0 +1,64 @@
+name: CI — Syntax & Import Check
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  lint-and-syntax:
+    runs-on: ubuntu-latest
+    name: Python Syntax & Import Check
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install UV
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv pip install --system --frozen .
+
+      - name: Check syntax of all Python files
+        run: |
+          echo "Checking syntax..."
+          find . -name "*.py" \
+            -not -path "./.venv/*" \
+            -not -path "./__pycache__/*" \
+            -not -path "./test_project/*" \
+            | xargs python -m py_compile
+          echo "All Python files passed syntax check!"
+
+      - name: Verify all agent imports succeed
+        run: |
+          python -c "
+          import agents.ceo
+          import agents.architect
+          import agents.product_manager
+          import agents.backend
+          import agents.frontend
+          import agents.database
+          import agents.qa
+          import agents.security
+          import agents.reviewer
+          import agents.coder
+          import agents.documentation
+          import agents.devops
+          print('All agent imports: OK')
+          "
+
+      - name: Verify API module imports succeed
+        run: |
+          python -c "
+          from fastapi import FastAPI
+          from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+          from contextlib import asynccontextmanager
+          print('API core imports: OK')
+          "

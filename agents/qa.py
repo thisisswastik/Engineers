@@ -14,13 +14,15 @@ class QAState(TypedDict):
     architecture: dict
     qa_plan: dict
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2,
+    )
 
 def qa_node(state: QAState):
+    llm = _get_llm()
     prompt = f"""
 You are a Principal QA (Quality Assurance) Engineer.
 
@@ -78,8 +80,9 @@ IMPORTANT:
 
     return {"qa_plan": qa_plan}
 
-graph = StateGraph(QAState)
-graph.add_node("qa_engineer", qa_node)
-graph.set_entry_point("qa_engineer")
-graph.add_edge("qa_engineer", END)
-qa_graph = graph.compile()
+if __name__ == "__main__":
+    graph = StateGraph(QAState)
+    graph.add_node("qa_engineer", qa_node)
+    graph.set_entry_point("qa_engineer")
+    graph.add_edge("qa_engineer", END)
+    qa_graph = graph.compile()

@@ -40,11 +40,12 @@ class ArchitectState(TypedDict):
 # MODEL
 # ==========================================================
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2,
+    )
 
 
 # ==========================================================
@@ -52,6 +53,7 @@ llm = ChatGoogleGenerativeAI(
 # ==========================================================
 
 def architect_node(state: ArchitectState):
+    llm = _get_llm()
 
     prompt = f"""
 You are a Principal Software Architect.
@@ -179,26 +181,17 @@ Returned Text:
 # ==========================================================
 # GRAPH
 # ==========================================================
-
-graph = StateGraph(ArchitectState)
-
-graph.add_node("architect", architect_node)
-
-graph.set_entry_point("architect")
-
-graph.add_edge("architect", END)
-
-architect_graph = graph.compile()
-
-
-# ==========================================================
-# TEST
+# GRAPH (only built when run directly as a script)
 # ==========================================================
 
 if __name__ == "__main__":
+    graph = StateGraph(ArchitectState)
+    graph.add_node("architect", architect_node)
+    graph.set_entry_point("architect")
+    graph.add_edge("architect", END)
+    architect_graph = graph.compile()
 
     state = {
-
         "user_request": """
 Build an AI Resume Analyzer.
 
@@ -212,7 +205,6 @@ The application should
 - Login / Signup
 - Dashboard
 """,
-
         "business_plan": {
             "project_name": "AI Resume Analyzer",
             "summary": "AI-powered resume analysis platform",
@@ -224,7 +216,6 @@ The application should
             "priority": "High",
             "estimated_complexity": "High"
         },
-
         "product_requirements": {
             "prd": {
                 "features": [
@@ -241,12 +232,10 @@ The application should
                 ]
             }
         },
-
         "architecture": {}
     }
 
     result = architect_graph.invoke(state)
 
     print("\n========== ARCHITECTURE ==========\n")
-
-    print(json.dumps(result["architecture"], indent=4))
+    print(json.dumps(result["architecture"], indent=4))

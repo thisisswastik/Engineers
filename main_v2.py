@@ -95,8 +95,8 @@ async def build_pipeline(checkpointer):
     pro_llm, flash_llm, tools = await get_combined_llm_with_tools()
 
     async def run_coder_node(state):
-        # Delegate frontend coding to Gemini 2.5 Pro with tools
-        return await coder.frontend_coder_node(state, pro_llm, tools)
+        # Full-stack coder: runs backend coder then frontend coder sequentially
+        return await coder.full_stack_coder_node(state, pro_llm, tools)
         
     workflow = StateGraph(PipelineState)
 
