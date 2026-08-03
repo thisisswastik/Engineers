@@ -23,9 +23,12 @@ jobs:
       - name: Install UV
         run: pip install uv
 
+      # uv sync reads pyproject.toml + uv.lock and installs exact pinned versions.
+      # This is the correct command for uv-managed projects (not uv pip install).
       - name: Install dependencies
-        run: uv pip install --system --frozen .
+        run: uv sync
 
+      # Compile every .py file outside .venv, __pycache__, and test_project/
       - name: Check syntax of all Python files
         run: |
           echo "Checking syntax..."
@@ -33,32 +36,37 @@ jobs:
             -not -path "./.venv/*" \
             -not -path "./__pycache__/*" \
             -not -path "./test_project/*" \
-            | xargs python -m py_compile
+            | xargs uv run python -m py_compile
           echo "All Python files passed syntax check!"
 
+      # Write the check to a script file to avoid YAML-indentation / shell-quoting issues.
+      # Agents must be importable with NO GEMINI_API_KEY set (LLMs are lazy-loaded inside nodes).
       - name: Verify all agent imports succeed
         run: |
-          python -c "
-          import agents.ceo
-          import agents.architect
-          import agents.product_manager
-          import agents.backend
-          import agents.frontend
-          import agents.database
-          import agents.qa
-          import agents.security
-          import agents.reviewer
-          import agents.coder
-          import agents.documentation
-          import agents.devops
-          print('All agent imports: OK')
-          "
+          cat > /tmp/check_imports.py << 'EOF'
+import agents.ceo
+import agents.architect
+import agents.product_manager
+import agents.backend
+import agents.frontend
+import agents.database
+import agents.qa
+import agents.security
+import agents.reviewer
+import agents.coder
+import agents.documentation
+import agents.devops
+print("All 12 agent imports: OK")
+EOF
+          uv run python /tmp/check_imports.py
 
-      - name: Verify API module imports succeed
+      - name: Verify API core imports succeed
         run: |
-          python -c "
-          from fastapi import FastAPI
-          from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-          from contextlib import asynccontextmanager
-          print('API core imports: OK')
-          "
+          cat > /tmp/check_api.py << 'EOF'
+from fastapi import FastAPI
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from contextlib import asynccontextmanager
+from pydantic import BaseModel
+print("API core imports: OK")
+EOF
+          uv run python /tmp/check_api.py

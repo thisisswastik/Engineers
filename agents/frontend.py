@@ -1,11 +1,12 @@
-import os 
-import json 
+import os
+import json
 from typing import TypedDict
-from dotenv import load_dotenv 
-from langgraph.graph import StateGraph, END 
+from dotenv import load_dotenv
+from langgraph.graph import StateGraph, END
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
+
 
 class FrontendState(TypedDict):
     user_request: str
@@ -14,13 +15,17 @@ class FrontendState(TypedDict):
     architecture: dict
     frontend_design: dict
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2
-)
+
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2
+    )
+
 
 def frontend_node(state: FrontendState):
+    llm = _get_llm()
     prompt = f"""
 You are a Principal Frontend Engineer.
 Your task is to produce a Frontend Engineering Design Document.
@@ -59,16 +64,18 @@ IMPORTANT:
 - DO NOT wrap the JSON inside markdown code blocks (```json).
 - Every key/string must be in double quotes. No trailing commas.
 """
-    response=llm.invoke(prompt)
+    response = llm.invoke(prompt)
     text = response.content.strip().replace("```json", "").replace("```", "").strip()
     try:
         frontend_design = json.loads(text)
     except json.JSONDecodeError as e:
         raise Exception(f"Frontend Agent returned invalid JSON. Error: {e} Text: {text}")
     return {"frontend_design": frontend_design}
-graph = StateGraph(FrontendState)
-graph.add_node("frontend_engineer", frontend_node)
-graph.set_entry_point("frontend_engineer")
-graph.add_edge("frontend_engineer", END)
-frontend_graph = graph.compile()
-    
+
+
+if __name__ == "__main__":
+    graph = StateGraph(FrontendState)
+    graph.add_node("frontend_engineer", frontend_node)
+    graph.set_entry_point("frontend_engineer")
+    graph.add_edge("frontend_engineer", END)
+    frontend_graph = graph.compile()

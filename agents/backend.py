@@ -42,11 +42,12 @@ class BackendState(TypedDict):
 # MODEL
 # ==========================================================
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2,
+    )
 
 
 # ==========================================================
@@ -54,6 +55,7 @@ llm = ChatGoogleGenerativeAI(
 # ==========================================================
 
 def backend_node(state: BackendState):
+    llm = _get_llm()
 
     prompt = f"""
 You are a Principal Backend Engineer.
@@ -208,15 +210,12 @@ Do not wrap the JSON inside markdown.
 # GRAPH
 # ==========================================================
 
-graph = StateGraph(BackendState)
-
-graph.add_node("backend_engineer", backend_node)
-
-graph.set_entry_point("backend_engineer")
-
-graph.add_edge("backend_engineer", END)
-
-backend_graph = graph.compile()
+if __name__ == "__main__":
+    graph = StateGraph(BackendState)
+    graph.add_node("backend_engineer", backend_node)
+    graph.set_entry_point("backend_engineer")
+    graph.add_edge("backend_engineer", END)
+    backend_graph = graph.compile()
 
 
 # ==========================================================

@@ -39,11 +39,12 @@ class DatabaseState(TypedDict):
 # MODEL
 # ==========================================================
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.2,
-)
+def _get_llm():
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.2,
+    )
 
 
 # ==========================================================
@@ -51,6 +52,7 @@ llm = ChatGoogleGenerativeAI(
 # ==========================================================
 
 def database_node(state: DatabaseState):
+    llm = _get_llm()
 
     prompt = f"""
 You are a Principal Database Engineer.
@@ -167,8 +169,9 @@ DO NOT wrap in ```json.
     return design
 
 
-graph = StateGraph(DatabaseState)
-graph.add_node("database_engineer", database_node)
-graph.set_entry_point("database_engineer")
-graph.add_edge("database_engineer", END)
-database_graph = graph.compile()
+if __name__ == "__main__":
+    graph = StateGraph(DatabaseState)
+    graph.add_node("database_engineer", database_node)
+    graph.set_entry_point("database_engineer")
+    graph.add_edge("database_engineer", END)
+    database_graph = graph.compile()
