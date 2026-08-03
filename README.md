@@ -1,199 +1,314 @@
-# 🚀 Engineers — Autonomous AI Software Engineering Organization
+# Engineers — Autonomous Multi-Agent AI Software Engineering Platform
 
-> An enterprise-grade, multi-agent AI software development organization built with **LangGraph**, **Gemini 2.5 Pro & Flash Multi-Model Intelligence**, **Model Context Protocol (MCP)**, **OpenTelemetry Observability**, and **Human-in-the-Loop Governance**.
+> Convert a single natural language prompt into a production-ready, full-stack application using an orchestrated team of 11 specialized AI agents.
 
----
-
-## 📌 Executive Summary
-
-**Engineers** converts high-level natural language prompt requests (e.g., *"Build me a food delivery application"*) into complete, production-ready software platforms. It orchestrates an entire software engineering organization consisting of **11 specialized AI Agents** working in parallel and sequential phases.
-
-The system features:
-- **Gemini Multi-Model Tier Specialization**: Fast `gemini-2.5-flash` for high-throughput planning, PRDs, & auditing + `gemini-2.5-pro` for deep Coder agent reasoning and code generation.
-- **Parallel Fan-Out & Fan-In Architecture**: Concurrent execution of backend, database, and frontend engineering design.
-- **Human-in-the-Loop (HITL) Checkpointing**: Pauses execution post-design with `AsyncSqliteSaver` persistent checkpointing before code execution.
-- **MCP Tool Integration**: Equips Coder agents with direct file system, shell terminal, and database execution capabilities.
-- **Automated Self-Correction Loop**: Code Reviewer evaluates code quality and routes back to the Coder for automated revisions if critical defects are detected.
-- **Real-Time Observability Dashboard**: Tracks execution traces via OpenTelemetry / OpenInference standards hosted live on `http://localhost:6006`.
+[![CI — Syntax & Import Check](https://github.com/thisisswastik/Engineers/actions/workflows/ci.yml/badge.svg)](https://github.com/thisisswastik/Engineers/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![LangGraph](https://img.shields.io/badge/LangGraph-1.2+-orange)
+![Gemini](https://img.shields.io/badge/Gemini-2.5_Pro_%26_Flash-4285F4?logo=google)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.141+-009688?logo=fastapi)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
-## 🏗️ System Architecture & Workflow
+## What It Does
 
-```mermaid
-flowchart TD
-    User([Client Prompt]) --> CEO[👔 CEO Agent]
-    CEO --> PM[📋 Product Manager]
-    PM --> Arch[🏗️ Architect Agent]
-    
-    subgraph Parallel Design Phase
-        Arch --> Backend[⚙️ Backend Engineer]
-        Arch --> DB[🗄️ Database Engineer]
-        Arch --> Frontend[🎨 Frontend Engineer]
-    end
-    
-    Backend --> QA[🧪 QA Engineer]
-    DB --> QA
-    Frontend --> QA
-    
-    QA --> HITL{⏸️ Human-in-the-Loop Approval}
-    
-    HITL -- Approved --> Coder[👨‍💻 Coder Agent ReAct Loop]
-    HITL -- Rejected --> Abort([Pipeline Aborted])
-    
-    subgraph Execution & Governance Phase
-        Coder --> MCP[🛠️ MCP Tools: Filesystem, Shell, SQLite]
-        MCP --> Coder
-        Coder --> DevOps[🐳 DevOps Agent]
-        DevOps --> Security[🛡️ Security Engineer]
-        Security --> Reviewer[🔍 Code Reviewer Agent]
-    end
+You type:
+```
+Build me a food delivery platform with customer app, restaurant dashboard, and driver tracking.
+```
 
-    Reviewer --> SelfCorrection{⚠️ Critical Defects Found?}
-    SelfCorrection -- Yes (Rev < 2) --> Increment[🔄 Revision Counter]
-    Increment --> Coder
-    SelfCorrection -- No / Max Rev --> Doc[📚 Documentation Agent]
-    
-    Doc --> Finish([🚀 Deliverables & App Deployment])
+The platform runs a full software engineering organization — CEO to DevOps — and delivers:
+
+- ✅ Product Requirements Document (PRD)
+- ✅ System Architecture & Tech Stack
+- ✅ Database Schema & SQL Migrations
+- ✅ Backend REST API Contracts
+- ✅ Frontend Component Specifications
+- ✅ QA Test Strategy
+- ✅ Generated React + Node.js codebase
+- ✅ `docker-compose.yml` for the generated app
+- ✅ Security audit report
+- ✅ Developer documentation
+
+---
+
+## Agent Architecture
+
+```
+                    ┌─────────────────────────────────────┐
+  Natural Language  │  Phase 1: Planning  (Gemini Flash)  │
+     Prompt ──────► │                                     │
+                    │  CEO → Product Manager → Architect  │
+                    │                  │                  │
+                    │    ┌─────────────┼─────────────┐    │
+                    │    ▼             ▼             ▼    │
+                    │  Backend    Database       Frontend  │  ← Parallel fan-out
+                    │    └─────────────┼─────────────┘    │
+                    │                  ▼                  │
+                    │            QA Engineer              │
+                    └─────────────────┬───────────────────┘
+                                      │
+                              ⏸ HUMAN-IN-THE-LOOP
+                          Review specs → Approve / Reject
+                                      │
+                    ┌─────────────────▼───────────────────┐
+                    │  Phase 2: Execution  (Gemini Pro)   │
+                    │                                     │
+                    │  Coder Agent ◄──────────────────┐   │
+                    │  (ReAct + MCP Tools)            │   │
+                    │        │                        │   │
+                    │        ▼                        │   │
+                    │  DevOps → Security → Reviewer   │   │
+                    │                  │              │   │
+                    │         Critical Issues? ───────┘   │  ← Self-correction loop
+                    │         (max 2 revisions)           │     (up to 2x)
+                    │                  │                  │
+                    │          Documentation Agent        │
+                    └─────────────────────────────────────┘
+                                       │
+                              Generated Application
 ```
 
 ---
 
-## 🤖 Specialized AI Agent Roster
+## Agent Roster
 
-| Agent | Module | Role & Key Output |
-| :--- | :--- | :--- |
-| **CEO Agent** | [`agents/ceo.py`](file:///c:/Users/swastik/Desktop/engineers/agents/ceo.py) | Defines high-level business goals, roadmaps, team composition, and scope. |
-| **Product Manager** | [`agents/product_manager.py`](file:///c:/Users/swastik/Desktop/engineers/agents/product_manager.py) | Generates Product Requirement Documents (PRDs), user stories, and acceptance criteria. |
-| **Architect Agent** | [`agents/architect.py`](file:///c:/Users/swastik/Desktop/engineers/agents/architect.py) | Designs system architecture, component topologies, technology stack, and data flows. |
-| **Backend Engineer** | [`agents/backend.py`](file:///c:/Users/swastik/Desktop/engineers/agents/backend.py) | Produces REST API specifications, controller logic, authentication models, and endpoints. |
-| **Database Engineer** | [`agents/database.py`](file:///c:/Users/swastik/Desktop/engineers/agents/database.py) | Formulates ER diagrams, relational schemas, SQL migrations, and indexing strategies. |
-| **Frontend Engineer** | [`agents/frontend.py`](file:///c:/Users/swastik/Desktop/engineers/agents/frontend.py) | Specifies component hierarchies, design systems, UI routes, and client state management. |
-| **QA Engineer** | [`agents/qa.py`](file:///c:/Users/swastik/Desktop/engineers/agents/qa.py) | Creates comprehensive test suites, unit/integration test cases, and edge-case criteria. |
-| **Coder Agent** | [`agents/coder.py`](file:///c:/Users/swastik/Desktop/engineers/agents/coder.py) | Executes a ReAct loop with MCP tools to write clean codebase files and run compilation/test checks. |
-| **DevOps Agent** | [`agents/devops.py`](file:///c:/Users/swastik/Desktop/engineers/agents/devops.py) | Configures Docker, `docker-compose.yml`, CI/CD pipelines, and environment configs. |
-| **Security Engineer** | [`agents/security.py`](file:///c:/Users/swastik/Desktop/engineers/agents/security.py) | Audits code against OWASP Top 10, secret exposure, RBAC rules, and produces security reports. |
-| **Code Reviewer** | [`agents/reviewer.py`](file:///c:/Users/swastik/Desktop/engineers/agents/reviewer.py) | Conducts static code analysis, performance evaluation, and triggers self-correction loops. |
-| **Documentation Agent**| [`agents/documentation.py`](file:///c:/Users/swastik/Desktop/engineers/agents/documentation.py) | Compiles developer guides, user manuals, deployment instructions, and API reference docs. |
-
----
-
-## 🔌 Model Context Protocol (MCP) Tools
-
-The Coder Agent interacts directly with the local workspace through standard MCP servers loaded via `langchain-mcp-adapters` in [`mcps/combined_tools.py`](file:///c:/Users/swastik/Desktop/engineers/mcps/combined_tools.py):
-
-- 📁 **Filesystem MCP** ([`mcps/filesystem.py`](file:///c:/Users/swastik/Desktop/engineers/mcps/filesystem.py)): File creation, directory management, safe path resolution (`@modelcontextprotocol/server-filesystem`).
-- 💻 **Terminal / Shell MCP** ([`mcps/terminal.py`](file:///c:/Users/swastik/Desktop/engineers/mcps/terminal.py)): Automated command execution, dependency installation, pytest/compiler verification (`@mako10k/mcp-shell-server`).
-- 🗄️ **Database MCP** ([`mcps/database.py`](file:///c:/Users/swastik/Desktop/engineers/mcps/database.py)): Direct SQLite schema verification and SQL query execution (`mcp-server-sqlite`).
+| Agent | File | Model | Output |
+|:---|:---|:---|:---|
+| CEO | [`agents/ceo.py`](agents/ceo.py) | Flash | Business plan, roadmap, team scope |
+| Product Manager | [`agents/product_manager.py`](agents/product_manager.py) | Flash | PRD, user stories, constraints |
+| Architect | [`agents/architect.py`](agents/architect.py) | Flash | Tech stack, microservices, DB schema, APIs |
+| Backend Engineer | [`agents/backend.py`](agents/backend.py) | Flash | REST routes, controllers, auth design |
+| Database Engineer | [`agents/database.py`](agents/database.py) | Flash | ER schema, migrations, indexes |
+| Frontend Engineer | [`agents/frontend.py`](agents/frontend.py) | Flash | Component tree, routing, state design |
+| QA Engineer | [`agents/qa.py`](agents/qa.py) | Flash | Test cases, coverage strategy, CI commands |
+| **Coder** | [`agents/coder.py`](agents/coder.py) | **Pro** | Full-stack code via ReAct + MCP tools |
+| DevOps | [`agents/devops.py`](agents/devops.py) | — | `docker-compose.yml`, setup scripts |
+| Security Engineer | [`agents/security.py`](agents/security.py) | Flash | OWASP audit, threat model, RBAC review |
+| Code Reviewer | [`agents/reviewer.py`](agents/reviewer.py) | Flash | Quality scores, criticisms, revision triggers |
+| Documentation | [`agents/documentation.py`](agents/documentation.py) | Flash | Setup guides, API docs, deployment steps |
 
 ---
 
-## 📊 Observability & Telemetry Infrastructure
+## Key Engineering Features
 
-The project includes built-in OpenTelemetry & OpenInference tracing ([`observabillity.py`](file:///c:/Users/swastik/Desktop/engineers/observabillity.py)):
-- **Silent File Exporter**: Logs trace spans to `./logs/telemetry.log` without cluttering command line output.
-- **Live Telemetry Dashboard**: A lightweight built-in HTTP server ([`launch_dashboard.py`](file:///c:/Users/swastik/Desktop/engineers/launch_dashboard.py)) running on `http://localhost:6006` for inspecting real-time agent execution times, tool calls, and LLM payloads.
+### Multi-Model Tier Routing
+- `gemini-2.5-flash` — all planning, auditing, and specification agents (fast, cost-efficient)
+- `gemini-2.5-pro` — Coder agent only (deep reasoning for code generation)
+
+### Parallel Fan-Out / Fan-In
+Backend, Database, and Frontend engineers run **concurrently** after the Architect finishes. LangGraph joins their outputs at QA, cutting total planning time by ~3x.
+
+### Human-in-the-Loop (HITL) with Persistent Checkpointing
+The graph pauses before code generation with `interrupt_before=["coder"]`. State is persisted to `logs/checkpoints.sqlite` via `AsyncSqliteSaver`. You can review specs, close the terminal, and resume the pipeline days later — state is never lost.
+
+### Automated Self-Correction Loop
+The Code Reviewer evaluates severity of issues. If `"high"` or `"critical"` criticisms are found and `revision_count < 2`, the graph routes back to the Coder automatically with structured feedback.
+
+### MCP Tool Integration
+The Coder agent has sandboxed access to three MCP servers:
+- **Filesystem** — file creation, directory management
+- **Shell/Terminal** — command execution, package installs, test runs  
+- **SQLite** — direct database schema creation and querying
+
+Paths are **environment-aware** — works on Windows, Linux, and inside Docker containers with zero code changes.
+
+### OpenTelemetry Observability
+Every LLM call, tool invocation, and agent step is traced via OpenInference instrumentation and logged silently to `logs/telemetry.log`. A persistent dashboard at `http://localhost:6006` visualizes traces.
+
+### REST API + WebSockets
+A deployment-grade FastAPI server (`api/api_v1.py`) exposes the entire pipeline as a web service with non-blocking endpoints and real-time WebSocket streaming of agent progress.
 
 ---
 
-## 📁 Repository Directory Structure
+## Project Structure
 
 ```
 engineers/
-├── agents/                      # 11 Specialized AI Agent Implementations
+├── agents/                   # 12 specialized AI agent implementations
+│   ├── ceo.py
+│   ├── product_manager.py
 │   ├── architect.py
 │   ├── backend.py
-│   ├── ceo.py
-│   ├── coder.py                 # LangGraph ReAct agent with tool binding
-│   ├── combined_agents.py
 │   ├── database.py
-│   ├── devops.py
-│   ├── documentation.py
 │   ├── frontend.py
-│   ├── product_manager.py
 │   ├── qa.py
+│   ├── coder.py              # ReAct agent with MCP tool binding
+│   ├── devops.py
+│   ├── security.py
 │   ├── reviewer.py
-│   └── security.py
-├── mcps/                        # Model Context Protocol Configurations
-│   ├── browser.py
-│   ├── combined_tools.py        # MCP Client loader & LLM tool binding
-│   ├── database.py
-│   ├── docker.py
-│   ├── figma.py
+│   └── documentation.py
+├── api/
+│   └── api_v1.py             # FastAPI REST + WebSocket server
+├── mcps/                     # MCP server configurations (env-aware paths)
+│   ├── combined_tools.py     # Multi-model LLM + tool loader
 │   ├── filesystem.py
-│   ├── github.py
-│   ├── slack.py
-│   └── terminal.py
-├── test_project/                # Target Workspace for Generated Applications
-│   └── gourmetgo-platform/      # Full-stack platform generated by agents
-├── logs/                        # OpenTelemetry Log Store
-│   └── telemetry.log
-├── main.py                      # Baseline Sequential Execution Graph
-├── main_v2.py                   # Production Graph: Parallel, HITL, Self-Correction
-├── observabillity.py            # OpenTelemetry & OpenInference Instrumentor
-├── launch_dashboard.py          # Observability Dashboard Server (Port 6006)
-├── launch_app.py                # Automated Web App Discovery & Dev Server Launcher
-├── pyproject.toml               # Project Metadata & Dependency Locks
-└── README.md                    # Project Documentation
+│   ├── terminal.py
+│   └── database.py
+├── .github/
+│   └── workflows/
+│       └── ci.yml            # GitHub Actions CI pipeline
+├── logs/                     # Runtime: telemetry traces & SQLite checkpoints
+│   └── .gitkeep
+├── test_project/             # Runtime: generated application code lands here
+│   └── .gitkeep
+├── main_v2.py                # CLI entrypoint — runs full pipeline interactively
+├── observabillity.py         # OpenTelemetry + OpenInference setup
+├── launch_dashboard.py       # Telemetry dashboard server (port 6006)
+├── launch_app.py             # Auto-discovers & launches generated web apps
+├── Dockerfile                # Multi-stage production container
+├── docker-compose.yml        # Full-stack container orchestration
+├── pyproject.toml            # Dependency manifest (uv-managed)
+└── .env.example              # Environment variable template
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start
 
-### 1. Prerequisites
-- **Python**: `==3.11.*` (Managed via `uv` or standard Python 3.11)
-- **Node.js**: `>=18.0.0` (Required for running `npx` MCP servers and frontend web apps)
-- **Gemini API Key**: Google Gemini API key configured in `.env`
+### Prerequisites
+- Python `3.11.*`
+- Node.js `>=18` (for MCP npx servers)
+- [Gemini API Key](https://aistudio.google.com/app/apikey)
 
-### 2. Environment Configuration
-Create a `.env` file in the root directory:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/thisisswastik/Engineers.git
+cd Engineers
+
+# Install uv (fast Python package manager)
+pip install uv
+
+# Install all dependencies
+uv sync
 ```
 
-### 3. Run the Production Agent Organization
-Launch the complete parallel agent workflow with HITL approval, self-correction, and persistent SQLite checkpointing:
+### 2. Configure Environment
+
+```bash
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+```
+
+### 3. Run the Pipeline (CLI)
+
 ```bash
 uv run main_v2.py
 ```
-> 💡 **Human-in-the-Loop Interaction**: The pipeline will pause after generating product requirements, system architecture, database design, backend/frontend designs, and QA specs. State is saved to `logs/checkpoints.sqlite` so you can review specs, exit, or resume anytime! Press `y` when prompted to approve code generation.
+
+The pipeline will:
+1. Run all planning agents (CEO → PM → Architect → parallel → QA)
+2. **Pause** and display full specifications for your review
+3. Prompt: `Do you approve the planning specs to start coding? (y/n)`
+4. On `y` — Coder, DevOps, Security, Reviewer, and Documentation agents run
+5. Generated application files appear in `test_project/`
+
+### 4. Run via API (for frontends / integrations)
+
+```bash
+uv run python api/api_v1.py
+```
+
+API runs on `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
+
+```bash
+# 1. Start a pipeline session
+curl -X POST http://localhost:8000/api/v1/pipeline/start \
+  -H "Content-Type: application/json" \
+  -d '{"user_request": "Build a task management app"}'
+
+# Response: { "thread_id": "session-a1b2c3d4", "status": "PLANNING_STARTED" }
+
+# 2. Poll for status
+curl http://localhost:8000/api/v1/pipeline/session-a1b2c3d4/status
+
+# 3. Approve when status is "awaiting_approval"
+curl -X POST http://localhost:8000/api/v1/pipeline/approve \
+  -H "Content-Type: application/json" \
+  -d '{"thread_id": "session-a1b2c3d4", "approved": true}'
+```
+
+### 5. Launch Generated App
+
+```bash
+python launch_app.py
+# Opens generated web app at http://localhost:5173
+```
+
+### 6. View Telemetry Dashboard
+
+```bash
+python launch_dashboard.py
+# Opens trace viewer at http://localhost:6006
+```
 
 ---
 
-## 🛠️ Utility Scripts
+## Docker Deployment
 
-### 📊 Launch Token & Cost Analytics Observability Dashboard
-View real-time token counts, estimated Gemini API costs, OTEL trace streams, and agent metrics:
 ```bash
-uv run launch_dashboard.py
-```
-*Opens automatically at `http://localhost:6006`*
+# Set your API key in shell
+export GEMINI_API_KEY=your_key_here
 
-### 🐙 Auto-Publish Code to GitHub
-Initialize local Git repository, commit generated files, and create/push to GitHub automatically:
-```bash
-uv run scripts/devops_github.py
+# Build and run
+docker-compose up --build
 ```
 
-### 🌐 Launch Generated Web Application
-Automatically installs dependencies and launches the dev server for generated frontend apps:
-```bash
-uv run launch_app.py
-```
-*Discovers applications in `test_project/` and opens at `http://localhost:5173`*
+| Port | Service |
+|:---|:---|
+| `8000` | FastAPI REST API + WebSockets |
+| `6006` | Observability Dashboard |
+| `5173` | Generated Frontend App |
+
+The `docker-compose.yml` handles all environment variable injection and mounts `./test_project` and `./logs` as persistent volumes.
 
 ---
 
-## 🔬 Key Architectural Concepts Implemented
+## API Reference
 
-1. **State Graph Orchestration**: Built using `langgraph.graph.StateGraph` with custom `PipelineState` dictionary passing immutable state down the node DAG.
-2. **Parallel Fan-Out / Fan-In**: Architect node fans out to `backend_engineer`, `database_engineer`, and `frontend_engineer` simultaneously. Results are joined seamlessly into `qa_engineer`.
-3. **Conditional Edge Self-Correction**: Custom router function `should_revise_code` evaluates reviewer feedback severity. High/Critical issues trigger an automatic return edge to `coder` node up to 2 revision loops.
-4. **Memory Saver Checkpoints**: `MemorySaver` checkpointer allows pausing execution before `coder` (`interrupt_before=["coder"]`), providing state inspection and safe manual resume.
+| Method | Endpoint | Description |
+|:---|:---|:---|
+| `GET` | `/healthz` | Container health check |
+| `POST` | `/api/v1/pipeline/start` | Start planning phase, returns `thread_id` |
+| `GET` | `/api/v1/pipeline/{id}/status` | Poll current phase & deliverables |
+| `GET` | `/api/v1/pipeline/{id}/state` | Full raw LangGraph state snapshot |
+| `POST` | `/api/v1/pipeline/approve` | Submit HITL approval decision |
+| `GET` | `/api/v1/telemetry` | Last 15KB of OpenTelemetry traces |
+| `WS` | `/ws/pipeline/{id}` | Real-time agent progress stream |
+
+Full interactive documentation: `http://localhost:8000/docs`
 
 ---
 
-## 📄 License
+## Tech Stack
 
-This project is open-source software under the MIT License.
+| Layer | Technology |
+|:---|:---|
+| Agent Orchestration | [LangGraph](https://github.com/langchain-ai/langgraph) |
+| LLM Provider | Google Gemini 2.5 Pro & Flash |
+| Tool Integration | [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) |
+| State Persistence | SQLite via `AsyncSqliteSaver` |
+| API Server | FastAPI + Uvicorn |
+| Observability | OpenTelemetry + OpenInference |
+| Container | Docker (multi-stage build) |
+| Package Manager | [uv](https://github.com/astral-sh/uv) |
+| CI/CD | GitHub Actions |
+
+---
+
+## Resume Bullet Points
+
+> Orchestrated an 11-agent LangGraph state machine utilizing parallel fan-out execution phases and multi-tier model routing (Gemini 2.5 Flash & Pro) to convert natural language specs into production-ready full-stack applications.
+
+> Implemented enterprise safety controls including a 2-revision self-correcting code review loop, Human-in-the-Loop state persistence (`AsyncSqliteSaver`) prior to code execution, and sandboxed MCP tool access for filesystem, terminal, and database operations.
+
+> Exposed the agent pipeline as a deployment-grade FastAPI service with non-blocking REST endpoints, real-time WebSocket streaming, persistent SQLite session checkpointing, and a containerized Docker deployment with environment-aware cross-platform MCP path resolution.
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.

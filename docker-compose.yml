@@ -6,13 +6,42 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: engineers-platform
+
     ports:
-      - "8000:8000"   # FastAPI API & WebSockets
-      - "6006:6006"   # Arize Phoenix Observability Dashboard
-      - "5173:5173"   # Generated Frontend App
-    env_file:
-      - .env
+      - "8000:8000"   # FastAPI REST API & WebSockets
+      - "6006:6006"   # Observability Dashboard
+      - "5173:5173"   # Generated Frontend App (served by launch_app.py)
+
+    # Explicit environment variables (pulled from host shell or .env on the host).
+    # GEMINI_API_KEY must be set in your shell before running docker-compose up,
+    # OR place it in a .env file in this directory (it is NOT baked into the image).
+    environment:
+      # Required
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+
+      # MCP workspace — all coder agent filesystem/terminal/DB operations go here.
+      # Points to the container-side volume mount of ./test_project
+      - MCP_WORKSPACE_ROOT=/app/test_project
+
+      # SQLite MCP binary — installed into the container's global Python env by uv
+      - MCP_SQLITE_BIN=/usr/local/bin/mcp-server-sqlite
+
+      # SQLite database path inside the container
+      - MCP_DB_PATH=/app/test_project/database.sqlite
+
+    # Persist generated app code and telemetry logs to the host machine.
+    # Survives container restarts and can be inspected without entering the container.
     volumes:
       - ./test_project:/app/test_project
       - ./logs:/app/logs
+
     restart: unless-stopped
+
+    # Kubernetes-style healthcheck — waits for the API to be ready before
+    # marking the container as healthy.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s   # Give the LangGraph compilation time to complete
